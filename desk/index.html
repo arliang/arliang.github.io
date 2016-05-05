@@ -51,14 +51,23 @@
         }).promise();
       };
     
-    function play(){
+    function doAnimate(){
       var task, imgs = arguments;
+      hideLoading();
       $.each(delayList, function(index, item){
         task = task ? task.then(function (){
           return delay(item/2)
         }).then(function (){
           return show(imgs[index])
         }) : show(imgs[index]);
+      });
+      return task;
+    }
+    
+    function play(){
+      $('#img').off('click', play);
+      loaded.then(doAnimate).then(function(){
+        $('#img').on('click', play);
       });
     }
     
@@ -70,7 +79,8 @@
       return loadImg(index + 1);
     });
     
-    $.when.apply({}, tasks).then(play).then(hideLoading);
+    var loaded = $.when.apply({}, tasks);
+    play();
   </script>
 </body>
 </html>

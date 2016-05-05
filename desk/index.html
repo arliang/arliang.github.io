@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>掀桌子</title>
+  <script src="http://cdn.bootcss.com/jquery/2.1.0/jquery.js"></script>
+  <style>
+    div{
+      width: 270px;
+      margin: 0 auto;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">loading...</div>
+  <div>
+  <img id="img" width="270" height="480">
+  </div>
+  <script>
+    var delayList = [
+      500, 300, 300, 300, 300, 200, 200, 500, 500, 200,
+      200, 200, 100, 200, 100, 200,  50, 200,  50,  50,
+      200, 200, 200
+    ];
+    
+    var current = 0;
+    
+    function delay(ms){
+      return $.Deferred(function(defer){
+        setTimeout(defer.resolve, ms);
+      }).promise();
+    }
+    
+    function loadImg(num){
+      var img = new Image();
+      var promise = $.Deferred(function(defer){
+        img.onload = function(){
+          defer.resolve(img);
+        };
+      }).promise();
+      img.src = 'img/' + num + '.jpg';
+      return promise;
+    }
+    
+    function show(img){
+        return $.Deferred(function(defer){
+          $('#img').attr('src', img.src);
+          defer.resolve();
+        }).promise();
+      };
+    
+    function play(){
+      var task, imgs = arguments;
+      $.each(delayList, function(index, item){
+        task = task ? task.then(function (){
+          return delay(item/2)
+        }).then(function (){
+          return show(imgs[index])
+        }) : show(imgs[index]);
+      });
+    }
+    
+    function hideLoading(){
+      $('#loading').hide();
+    }
+    
+    var tasks = $(new Array(23)).map(function(index, item){
+      return loadImg(index + 1);
+    });
+    
+    $.when.apply({}, tasks).then(play).then(hideLoading);
+  </script>
+</body>
+</html>

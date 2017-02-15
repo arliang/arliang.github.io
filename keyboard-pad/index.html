@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <title>支付</title>
+  <style>
+    body { background-color: #f5f5f5; position: relative; }
+    [class*=am-u-] { width: 100%; padding-left: 1rem; padding-right: 1rem; float: left; position: relative; }
+    .am-u-sm-4 { width: 33.33333333%; }
+    *, :after, :before { box-sizing: border-box; }
+    .pay_user { margin-top: 30px; height: 600px; }
+    .pay_user_photo { width: 80px; height: 80px; margin: 0 auto; overflow: hidden; }
+    .pay_user_photo img { width: 100%; }
+    img { box-sizing: border-box; vertical-align: middle; }
+    .pay_user_text { text-align: center; margin-top: 5px; }
+    .pay_user_text p { margin: 0; }
+    .pay_user_name { font-size: 20px; font-weight: bold; }
+    .pay_user_address { font-size: 12px; }
+    .pay_amount { border: 1px solid#ccc; border-radius: 6px; overflow: hidden; width: 90%; position: relative; padding: 5px 10px; margin: 10px auto 0;background-color: #fff }
+    .pay_amount span { height: 43px; line-height: 43px; }
+    .pay_amount_inp { float: right; margin: 0; text-align: right; font-weight: bold; font-size: 24px; height: 43px; line-height: 43px; }
+    .pay_amount_unit { font-size: 14px; font-weight: 400; position: relative; bottom: 5px; }
+    .pay_number { font-size: 24px; }
+    .pay_title { text-align: center; margin-top: 20px; color: #ccc; }
+    .pay_amount_num_btn { text-align: center; position: fixed; bottom: 0px; left: 0; right: 0; -webkit-transition: all 0.5s ease; transition: all 0.5s ease; background-color: #fff; font-weight: bold; font-size: 20px; }
+    .am-g { margin: 0 auto; width: 100%; }
+    .am-container:after, .am-container:before, .am-g:after, .am-g:before, [class*=am-avg-]:after, [class*=am-avg-]:before { display: table; content: " "; }
+    .pay_amount_num_btn .am-u-sm-9, .pay_amount_num_btn .am-u-sm-3 { padding: 0; }
+    .pay_amount_num_btn .am-u-sm-9 { font-size: 22px; }
+    .am-u-sm-9 { width: 75%; }
+    .pay_amount_num_btn .am-u-sm-4 { border-right: 1px solid #eee; border-bottom: 1px solid #eee; height: 60px; line-height: 60px; }
+    .pay_amount_num_btn .am-u-sm-4:active {background-color: #aaa;color: #fff;}
+    .pay_amount_num_btn #keyboard { text-align: center; }
+    [class*=am-icon-] { display: inline-block; font-style: normal; }
+    .am-icon-keyboard-o:before { content: "\f11c"; }
+    [class*=am-icon-]:before { display: inline-block; font-size: inherit; -webkit-font-smoothing: antialiased; transform: translate(0, 0); }
+    .am-slider-default .am-direction-nav a:before, [class*=am-icon-]:before { font: normal normal normal 1.6rem/1 FontAwesome, sans-serif; -webkit-transform: translate(0, 0); -ms-transform: translate(0, 0); text-rendering: auto; -moz-osx-font-smoothing: grayscale; }
+    [class*=am-u-]+[class*=am-u-]:last-child { float: right; }
+    .am-u-sm-3 { width: 25%; }
+    .am-btn, button, input:not([type=radio]):not([type=checkbox]), select { vertical-align: middle; }
+    body, button, input, select, textarea { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -moz-font-feature-settings: "liga", "kern"; }
+    #del_num { height: 60px; line-height: 60px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .am-u-sm-12 { width: 100%; }
+    .bg_main, .cashier_place_name, #pay_money { background-color: #04BE02 !important; border-color: #04BE02 !important; }
+    #pay_money { height: 180px; line-height: 180px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; color: #fff; background-color: #F37B1D; }
+    .am-container:after, .am-g:after, [class*=am-avg-]:after { clear: both; }
+
+    .toast-container{
+        width: 100%;
+        text-align: center;
+        position: fixed;
+        bottom: 4em;
+        z-index: 100;
+        transition: opacity 0.5s;
+        -moz-transition: opacity 0.5s; /* Firefox 4 */
+        -webkit-transition: opacity 0.5s; /* Safari 和 Chrome */
+        -o-transition: opacity 0.5s; /* Opera */
+        opacity: 0;
+    }
+    .toast-content{
+        font-size: 1em;
+        padding: 0.5em 1em;
+        background: #4d4d4d;
+        border-radius: 4px;
+        color: #fff;
+        -webkit-box-shadow: 0px 0px 24px -1px rgba(56, 56, 56, 1);
+        -moz-box-shadow: 0px 0px 24px -1px rgba(56, 56, 56, 1);
+        box-shadow: 0px 0px 24px -1px rgba(56, 56, 56, 1);
+    }
+
+    .toast-container.fade-in{
+        opacity: 1;
+    }
+
+    .toast-container.fade-out{
+        opacity: 0;
+    }
+
+    #top_pay_tip{
+        padding: 7px 15px 7px 15px;
+        font-size:12px;
+        color: #fff;
+        background: #F37B1D;
+        text-decoration: none;
+        display:inline-block;
+        width:100%;
+        position:fixed;
+        top:0;left:0;
+        outline:none;
+        -webkit-tap-highlight-color:transparent;
+    }
+    .pay_user{
+        padding-top:20px;
+    }
+
+    body{
+      moz-user-select: -moz-none;
+      -moz-user-select: none;
+      -o-user-select:none;
+      -khtml-user-select:none;
+      -webkit-user-select:none;
+      -ms-user-select:none;
+      user-select:none;
+    }
+  </style>
+
+</head>
+
+<body>
+<div class="pay_user" style="height: auto;padding-bottom: 245px;">
+  <div class="pay_user_photo">
+    <img src="data:image/png;base64,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" />
+  </div>
+  <div class="pay_user_text">
+    <p class="pay_user_name">⬆️扫我访问</p>
+    <p class="pay_user_address">在iphone的微信平台下快速输入0.09这样的数字时候，会漏掉点号，纳闷</p>
+  </div>
+  <div class="pay_amount">
+    <span style="float: left;font-weight: bold;">金额</span>
+    <p class="pay_amount_inp"><span class="pay_amount_unit">￥</span><span class="pay_number"></span></p>
+  </div>
+  <p class="pay_title">金融支付专家</p>
+
+  <div id="tttt"></div>
+
+  <div class="pay_amount_num_btn">
+    <div class="am-g">
+      <div class="am-u-sm-9">
+        <div id="1" class="am-u-sm-4 num_btn">1</div>
+        <div id="2" class="am-u-sm-4 num_btn">2</div>
+        <div id="3" class="am-u-sm-4 num_btn">3</div>
+        <div id="4" class="am-u-sm-4 num_btn">4</div>
+        <div id="5" class="am-u-sm-4 num_btn">5</div>
+        <div id="6" class="am-u-sm-4 num_btn">6</div>
+        <div id="7" class="am-u-sm-4 num_btn">7</div>
+        <div id="8" class="am-u-sm-4 num_btn">8</div>
+        <div id="9" class="am-u-sm-4 num_btn">9</div>
+        <div id="keyboard" class="am-u-sm-4">键盘</div>
+        <div id="0" class="am-u-sm-4 num_btn">0</div>
+        <div id="spot" class="am-u-sm-4 num_btn">.</div>
+      </div>
+      <div class="am-u-sm-3">
+        <input type="hidden" id="user_code" value="10000091">
+        <div id="del_num" class="am-u-sm-12">删除</div>
+        <div id="pay_money" class="am-u-sm-12">付款</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function (global) {
+  global.$ = function (query, context) {
+    context = context || document;
+    if (! /^</.test(query)) {
+      return context.querySelectorAll(query);
+    } else {
+      var div = document.createElement('div');
+      query = query.replace(/<script.*>[\s\S]*?<\/script>/g, '')
+      div.innerHTML = query;
+      return div.firstChild;
+    }
+  }
+
+  $.toastMsg = function (msg, duration) {
+    if (!duration) {
+      duration = 2000;
+    }
+    if (!msg) {
+      msg = "操作成功";
+    }
+    var toast = $('<div class="toast-container"><span class="toast-content">' + msg + '</span></div>');
+
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+      toast.classList.add('fade-in');
+    });
+
+    setTimeout(function () {
+      toast.classList.remove('fade-in');
+      toast.classList.add('fade-out');
+      setTimeout(function () {
+        toast.parentNode.removeChild(toast);
+      }, duration);
+    }, duration);
+  };
+
+  function formdata(data){
+    var result = []
+    for(var k in data){
+      result.push(encodeURI([(k), '=', (data[k])].join('')));
+    }
+    return result.join('&')
+  }
+
+  $.post = function (options){
+    var opts = options || {}
+    var defaultOptions = {
+      success: function(){},
+      error: function(){},
+      complete: function(){},
+      url: location.href
+    };
+    var data = formdata(opts.data);
+    var request = new XMLHttpRequest();
+
+    for(var key in defaultOptions){
+      if(!opts[key]){
+        opts[key] = defaultOptions[key];
+      }
+    }
+
+    request.open('POST', opts.url, true);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.send(data);
+
+    request.onload = function() {
+      if (request.status >= 200 && request.status < 400) {
+        // Success!
+        var data = JSON.parse(request.responseText);
+        opts.success(data);
+      } else {
+        // We reached our target server, but it returned an error
+        opts.error(data);
+      }
+      opts.complete.apply(request);
+    }
+    request.onerror = function(){
+      opts.error.apply(request, arguments);
+      opts.complete.apply(request);
+    }
+  }
+  
+  $.addEvent = function(el, event, handler){
+    for(var i = 0; i < el.length; i++){
+      el[i].addEventListener(event, handler);
+    }
+  }
+  $.tap = function(el, handler){
+    for(var i = 0; i < el.length; i++){
+      el[i].addEventListener('touchstart', handler, false);
+    }
+  }
+})(this)
+</script>
+
+<script type="text/javascript">
+  var oNumber = $(".pay_number")[0];
+  var oNumBtn = $(".num_btn");
+  var iMoney = "";
+
+  var colors = ['red', 'blue'];
+  $.tap(oNumBtn, function() {
+  var typeD = this.innerHTML
+  tttt.innerHTML += typeD + ' '
+    switch(true){
+      case '' == iMoney || '0' == iMoney :  // 0 或 空白
+        if(typeD == '.'){
+          iMoney = '0.'
+        } else {
+          iMoney = typeD;
+        }
+        break;
+      case /\./.test(iMoney): // 已经有小数点
+        if(typeD != '.'){
+          iMoney += typeD
+        }
+        break;
+      default:  // 没有小数点
+        iMoney += typeD
+        break;
+    }
+    var parts = iMoney.split('.');
+    parts[0] = parseInt(parts[0], 10)
+    if(parts[0] > 50000){
+      parts[0] = '50000'
+    } else {
+      parts[0] = String(parts[0])
+    }
+
+    if(parts[1]){
+      parts[1] = parts[1].substr(0, 2);
+      iMoney = parts[0] + '.' + parts[1]
+    } else if(typeD == '.'){
+      iMoney = parts[0] + '.'
+    } else {
+      iMoney = parts[0]
+    }
+
+    oNumber.innerHTML = iMoney;
+  });
+  $.tap($("#del_num"), function() {
+    iMoney = iMoney.substring(0, iMoney.length - 1);
+    oNumber.innerHTML = iMoney;
+  });
+  $.tap($("#keyboard"), function() {
+    document.querySelector(".pay_amount_num_btn").style["bottom"] = "-240px";
+  });
+  $.tap($(".pay_amount"), function() {
+    document.querySelector(".pay_amount_num_btn").style["bottom"] = "0px";
+  });
+
+  function isAllowNumbers(n) {
+    n = '' + n
+    var denyReg = /00$|(\d)\1{2,}/
+
+    if(denyReg.test(n)) {
+      return false
+    }
+
+    if(isInOrder(n)) {
+      return false
+    }
+
+    return true
+  }
+
+  function isInOrder(n) {
+    var isPassed = false
+    n = '' + n
+    n.replace(/(\d)(\d)(\d)/g, function(m, $0, $1, $2) {
+      if(+$0 + 1 == +$1 && +$1 + 1 == +$2) {
+        isPassed = true
+      }
+    })
+    return isPassed
+  }
+
+  function pickOneIfNotAllowed(n) {
+    if(isAllowNumbers(n)) {
+      return n;
+    }
+    var arr = []
+    while(arr.length < 10 && n > 0) {
+      n--
+      if(isAllowNumbers(n)) {
+        arr.push(n)
+      }
+    }
+
+    var random = Math.floor(arr.length * Math.random())
+    return arr[random]
+  }
+
+
+  var is_pay = false;
+  var is_user = "0"
+  var auth_type = "2";
+  var type_lv = "2";
+  var old_type_lv = "0";
+  var pay_limit = "10000";
+  //alert(parseInt(old_type_lv));
+  $.tap($('#pay_money'), function(){
+
+    if(is_pay){
+      return false;
+    }
+    is_pay = true;
+
+    var price = $('.pay_number')[0].textContent;
+    var usercode=$('#user_code')[0].value;
+    price = parseFloat(price);
+    if(!price){
+      $.toastMsg('请输入金额');
+      return;
+    }
+
+    if( parseInt(auth_type) < 2 && is_user == '0' && price > 100 ){
+      //$.toastMsg('商户不是认证实体商户,单笔支付额度限制为100元');
+      //is_pay = false;
+      //return false;
+    }
+    if( is_user == '1' && price > 1000 ){
+
+
+    }
+    
+     if(!isAllowNumbers(price) && parseInt(price) < 50000 && is_user == '1' && price > 500) {
+     price = pickOneIfNotAllowed(price);
+     if(confirm("金额不符合规则，自动生成金额为" + price + "的订单？"))
+     {
+
+     }else{
+      is_pay = false;
+      return false;
+     }
+     }
+    $.toastMsg('提交支付中');
+    if((parseInt(auth_type) == 0 || parseInt(auth_type) == -1 ||  parseInt(auth_type) == 1) && is_user == '0'){
+      if(confirm("千万不要远程支付，小心诈骗，确认付款后，你支付的金额将直接进入对方账户，请悉知"))
+      {
+
+      }else{
+        is_pay = false;
+        return false;
+      }
+    }
+
+
+    if(parseInt(auth_type)!= 2 && parseInt(auth_type) != 3 && is_user == '0' && price > 100  ){
+        if(parseInt(auth_type) == 1 ){
+            if(parseInt(type_lv) != 2 ){
+                    var pay_price = 100;
+                    if(parseInt(pay_limit) < 100){
+                        pay_price  = pay_limit;
+                    }
+                    $.toastMsg("商户支付限额" + pay_price);
+                    is_pay = false;
+                    return false;
+                }
+            }else if( parseInt(auth_type) == -2){
+                if(parseInt(type_lv) < 2 && parseInt(old_type_lv) < 2){
+                    var pay_price = 100;
+                    if(parseInt(pay_limit) < 100){
+                        pay_price  = pay_limit;
+                    }
+                    $.toastMsg("商户支付限额" + pay_price);
+                    is_pay = false;
+                    return false;
+                }
+            }else {
+                var pay_price = 100;
+                if(parseInt(pay_limit) < 100){
+                    pay_price  = pay_limit;
+                }
+                $.toastMsg("商户支付限额" + pay_price);
+                is_pay = false;
+                return false;
+            }
+        }
+
+    alert('支付金额为：' + price)
+    return false;
+  });
+
+</script>
+</body>
+
+</html>

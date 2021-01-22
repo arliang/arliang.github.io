@@ -116,7 +116,12 @@
     }
 
     function saveIndent(){
-        localStorage['transform-tool-indent'] = document.querySelector('#indent').value
+        let value = document.querySelector('#indent').value
+        if(!value){
+            localStorage.removeItem('transform-tool-indent')
+        } else {
+            localStorage.setItem('transform-tool-indent', value)
+        }
     }
 
     function transform(type){

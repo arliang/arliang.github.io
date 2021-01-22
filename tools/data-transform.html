@@ -11,6 +11,16 @@
       <textarea id="encrypt" cols="80" rows="20" placeholder=""></textarea>
       <div id="warning" style="color:red; font-size: 2em; display: none;"></div>
       <textarea id="display" cols="80" rows="20"></textarea><br />
+      <select name="" id="indent">
+        <option value="">no indent</option>
+        <option value="tab">tab</option>
+        <option value="1">1 space</option>
+        <option value="2">2 spaces</option>
+        <option value="3">3 spaces</option>
+        <option value="4">4 spaces</option>
+        <option value="5">5 spaces</option>
+        <option value="6">6 spaces</option>
+      </select>
       <button onclick="transform('JSON')" id="toJSON">转JSON</button>
       <button onclick="transform('Form')" id="toForm">转FORM</button>
       <button onclick="transform('Bulk')" id="toBulk">转BULK</button>
@@ -30,29 +40,23 @@
         }
         return null
     }
-    function parseInput(input){
+    function parseInput(input, indent = null){
         let data = {}
         let obj
         switch(getDataType(input)){
             case 'json':
                 obj = JSON.parse(input)
-                data.json = JSON.stringify(obj, null, 2)
-                data.bulk = toBulk(obj)
-                data.form = toParam(obj)
                 break
             case 'form':
                 obj = formParse(input)
-                data.form = input
-                data.json = JSON.stringify(obj, null, 2)
-                data.bulk = toBulk(obj)
                 break
             case 'bulk':
                 obj = bulkParse(input)
-                data.bulk = input
-                data.json = JSON.stringify(obj, null, 2)
-                data.form = toParam(obj)
                 break
         }
+        data.json = JSON.stringify(obj, null, indent)
+        data.bulk = toBulk(obj)
+        data.form = toParam(obj)
         return data
     }
 
@@ -106,12 +110,26 @@
         return Object.keys(obj).map(key => [encodeURIComponent(key), encodeURIComponent(obj[key])].join('=')).join('&')
     }
 
+    function getIndent(){
+        let indent = document.querySelector('#indent').value
+        return indent == 'tab' ? '\t': /\d/.test(indent) ? +indent : null
+    }
+
+    function saveIndent(){
+        localStorage['transform-tool-indent'] = document.querySelector('#indent').value
+    }
+
     function transform(type){
-        let data = parseInput(document.querySelector('#encrypt').value)
+        let indent = getIndent()
+        let data = parseInput(document.querySelector('#encrypt').value, indent)
         let display = document.querySelector('#display')
         
         display.value = data[type.toLowerCase()] || '转换出现问题'
     }
+
+    let indent = document.querySelector('#indent')
+    indent.value = localStorage['transform-tool-indent'] || ''
+    indent.onchange = saveIndent
 
     let example = {json: '{"a":1}', form: 'a=1', bulk: 'a: 1'}
     let keys = Object.keys(example)

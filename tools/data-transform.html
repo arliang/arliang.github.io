@@ -22,7 +22,8 @@
         <option value="6">6 spaces</option>
       </select>
       <button onclick="transform('JSON')" id="toJSON">转JSON</button>
-      <button onclick="transform('Form')" id="toForm">转FORM</button>
+      <button onclick="transform('Form', false)" id="toForm">转FORM</button>
+      <button onclick="transform('Form')" id="toForm">转FORM 无URI编码</button>
       <button onclick="transform('Bulk')" id="toBulk">转BULK</button>
     </p>
     <script>
@@ -40,7 +41,7 @@
         }
         return null
     }
-    function parseInput(input, indent = null){
+    function parseInput(input, {indent = null, noEncode = true} = {}){
         let data = {}
         let obj
         switch(getDataType(input)){
@@ -56,7 +57,7 @@
         }
         data.json = JSON.stringify(obj, null, indent)
         data.bulk = toBulk(obj)
-        data.form = toParam(obj)
+        data.form = toParam(obj, noEncode)
         return data
     }
 
@@ -103,11 +104,22 @@
     }
 
     function toBulk(obj){
-        return Object.keys(obj).map(key => [key, obj[key]].join(': ')).join('\n')
+        return Object.keys(obj).reduce((result, key) => {
+            if(Array.isArray(obj[key])){
+                result = result.concat(obj[key].map(v => `${key}: ${v}`))
+            } else {
+                result.push(`${key}: ${obj[key]}`)
+            }
+            return result
+        }, []).join('\n')
     }
 
-    function toParam(obj){
-        return Object.keys(obj).map(key => [encodeURIComponent(key), encodeURIComponent(obj[key])].join('=')).join('&')
+    function toParam(obj, noEncode = true){
+        let encode = encodeURIComponent
+        if(noEncode){
+            encode = v => v
+        }
+        return Object.keys(obj).map(key => [encode(key), encode(obj[key])].join('=')).join('&')
     }
 
     function getIndent(){
@@ -124,9 +136,9 @@
         }
     }
 
-    function transform(type){
+    function transform(type, noEncode = true){
         let indent = getIndent()
-        let data = parseInput(document.querySelector('#encrypt').value, indent)
+        let data = parseInput(document.querySelector('#encrypt').value, {indent, noEncode})
         let display = document.querySelector('#display')
         
         display.value = data[type.toLowerCase()] || '转换出现问题'
@@ -136,7 +148,8 @@
     indent.value = localStorage['transform-tool-indent'] || ''
     indent.onchange = saveIndent
 
-    let example = {json: '{"a":1}', form: 'a=1', bulk: 'a: 1'}
+    let input = {'a': 'C:\\a\\b\\c\\d\\e', 'form': 'Hello', array: [1, 2, 3]}
+    let example = parseInput(JSON.stringify(input))
     let keys = Object.keys(example)
     let key = keys[Math.floor(Math.random() * 3)]
     document.querySelector('#encrypt').value = example[key]

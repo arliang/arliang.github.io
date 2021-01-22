@@ -1,0 +1,127 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>格式化</title>
+    <meta name="description" content="a tool transforms data between json param bulk">
+  </head>
+  <body>
+    <p>
+      <textarea id="encrypt" cols="80" rows="20" placeholder=""></textarea>
+      <div id="warning" style="color:red; font-size: 2em; display: none;"></div>
+      <textarea id="display" cols="80" rows="20"></textarea><br />
+      <button onclick="transform('JSON')" id="toJSON">转JSON</button>
+      <button onclick="transform('Form')" id="toForm">转FORM</button>
+      <button onclick="transform('Bulk')" id="toBulk">转BULK</button>
+    </p>
+    <script>
+    function getDataType(data){
+        let types = {
+            json: /^\s*\{/,
+            form: /^\s*\w+=/,
+            bulk: /^\s*\w+:/
+        }
+        
+        for(let type in types){
+            if(types[type].test(data)){
+                return type
+            }
+        }
+        return null
+    }
+    function parseInput(input){
+        let data = {}
+        let obj
+        switch(getDataType(input)){
+            case 'json':
+                obj = JSON.parse(input)
+                data.json = JSON.stringify(obj, null, 2)
+                data.bulk = toBulk(obj)
+                data.form = toParam(obj)
+                break
+            case 'form':
+                obj = formParse(input)
+                data.form = input
+                data.json = JSON.stringify(obj, null, 2)
+                data.bulk = toBulk(obj)
+                break
+            case 'bulk':
+                obj = bulkParse(input)
+                data.bulk = input
+                data.json = JSON.stringify(obj, null, 2)
+                data.form = toParam(obj)
+                break
+        }
+        return data
+    }
+
+    const formParse = makeParser({
+        lineSplitter: '&',
+        parser(part) {
+            let splitterIndex = part.indexOf('=')
+            let [key, value] = [part.substr(0, splitterIndex).trim(), part.substr(splitterIndex + 1).trim()]
+            key = decodeURIComponent(key)
+            value = decodeURIComponent(value)
+                key = key.replace(/\[\]$/, '')
+            return [key, value]
+        }
+    })
+    const bulkParse = makeParser({
+        lineSplitter: '\n',
+        parser(part) {
+            let splitterIndex = part.indexOf(':')
+            let [key, value] = [part.substr(0, splitterIndex).trim(), part.substr(splitterIndex + 1).trim()]
+            key = decodeURIComponent(key)
+            value = decodeURIComponent(value)
+            return [key, value]
+        }
+    })
+    function makeParser(opts){
+        if(! opts || ! typeof opts == 'object'){
+            throw new Error(`opts must be an object, received ${opts}`)
+        }
+        return function(input){
+            let text = input.trim()
+            return text.split(opts.lineSplitter).reduce((result, part) => {
+                let [key, value] = opts.parser(part)
+                if(result[key]){
+                    if(!Array.isArray(result[key])){
+                        result[key] = [result[key]]
+                    }
+                    result[key].push(value)
+                } else {
+                    result[key] = value
+                }
+                return result
+            }, {})
+        }
+    }
+
+    function toBulk(obj){
+        return Object.keys(obj).map(key => [key, obj[key]].join(': ')).join('\n')
+    }
+
+    function toParam(obj){
+        return Object.keys(obj).map(key => [encodeURIComponent(key), encodeURIComponent(obj[key])].join('=')).join('&')
+    }
+
+    function transform(type){
+        let data = parseInput(document.querySelector('#encrypt').value)
+        let display = document.querySelector('#display')
+        
+        display.value = data[type.toLowerCase()] || '转换出现问题'
+    }
+
+    let example = {json: '{"a":1}', form: 'a=1', bulk: 'a: 1'}
+    let keys = Object.keys(example)
+    let key = keys[Math.floor(Math.random() * 3)]
+    document.querySelector('#encrypt').value = example[key]
+    keys.splice(keys.indexOf(key), 1)
+    transform(keys[Math.floor(Math.random() * 2)])
+
+    // console.log(Object.keys(data).map(key => parseInput(data[key])))
+      
+    </script>
+  </body>
+</html>
